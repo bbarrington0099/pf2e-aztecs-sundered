@@ -1,5 +1,83 @@
 PF2e Aztec's Sundered allows for tracking items durability and apply respective buffs on broken or destroyed items.
 
+## Homebrew Automation (optional)
+
+This module now includes fully optional automation features for homebrew durability rules.  
+All of these are disabled by default unless noted otherwise.
+
+### New settings
+
+- `Homebrew: Crit-fail weapon damage (PCs)`
+- `Homebrew: Crit-fail weapon damage (NPCs)`
+- `Homebrew: Armor damage from HP hits (PCs)`
+- `Homebrew: Armor damage from HP hits (NPCs)`
+- `Homebrew: PC armor damage assumes Stamina variant` (default: enabled)
+- `Homebrew: PC armor damage threshold (%)` (default: 75)
+- `Homebrew: NPC armor damage threshold (%)` (default: 75)
+- `Homebrew: Prompt if HP loss was physical` (default: enabled)
+- `Homebrew: Shield Block automation (PCs)`
+- `Homebrew: Shield Block automation (NPCs)`
+- `Homebrew: Show automation chat messages` (default: enabled)
+
+### Crit-fail weapon durability
+
+When enabled, critical-failure attack rolls with a weapon get a chat action button:
+
+- Prompt for rolled damage (for tables that do not normally roll damage on crit fail)
+- Apply durability damage to the same weapon as:
+  - `max(0, rolledDamage - weaponHardness)`
+- If there is no weapon item associated with the attack, this automation is skipped
+
+### Armor durability from HP damage
+
+When enabled, armor-slot armor (not shields) can take durability damage when actor HP drops:
+
+- Trigger condition:
+  - Actor HP decreases
+  - Armor automation is enabled for that actor type (PC/NPC)
+  - Actor has armor equipped in the armor slot
+- Physical-damage gate:
+  - If `Prompt if HP loss was physical` is enabled, each HP drop asks for Yes/No confirmation
+  - If disabled, automation runs only when physical damage types are detected (`bludgeoning`, `piercing`, `slashing`)
+- Damage calculation:
+  - Stamina mode (PC only, when enabled): all HP damage can spill to armor
+  - Threshold mode: only the HP-damage portion below the configured threshold% can spill to armor
+  - Durability loss is `max(0, spilloverDamage - armorHardness)`
+
+### Shield Block automation
+
+When enabled, Shield Block usage from core PF2e chat flow receives a chat action button that opens a modal:
+
+- Prompt for incoming damage before hardness
+- Requires a raised/effective shield
+- Applies RAW-style blocked damage to both shield and actor:
+  - `blockedDamage = max(0, incomingDamage - shieldHardness)`
+  - Shield HP decreases by `blockedDamage`
+  - Actor HP decreases by `blockedDamage`
+- Actor HP reduction from Shield Block can then trigger armor durability automation (if enabled and confirmed/qualified)
+
+### Recommended penalty balance (if using these homebrew options)
+
+- Broken weapon penalty: `-1`
+- Broken armor penalties: `-1` for light, medium, and heavy
+
+### Manual fallback macro (Shield Block)
+
+A manual fallback macro is included for tables that want a direct trigger:
+
+- File: `macros/manual-shield-block-fallback.js`
+- Behavior:
+  - Uses selected token actor (or user character)
+  - Prompts for incoming damage
+  - Applies Shield Block automation through module API
+
+### API helpers
+
+The module API now exposes:
+
+- `game.modules.get("pf2e-aztecs-sundered").api.runShieldBlockAutomation(actorOrId, incomingDamage)`
+- `game.modules.get("pf2e-aztecs-sundered").api.promptShieldBlockAutomation(actorOrId)`
+
 Demonstration of the main PC interface and basic functionality: dealing damage to the item, dealing damage ignoring its Hardness, and how does the Broken condition afflict a weapon:
 ![bandicam 2026-04-01 06-52-04-180 (1)](https://github.com/user-attachments/assets/2b25accc-459b-451a-81d9-dcfa3e5fae1c)
 

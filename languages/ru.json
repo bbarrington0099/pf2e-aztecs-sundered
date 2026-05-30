@@ -250,7 +250,11 @@
          "automation": {
             "weapon-prompt-title": "Урон оружию при критическом провале",
             "weapon-prompt-button": "КРИТ ПРОВАЛ УРОН",
-            "weapon-prompt-body": "Критический провал с {weaponName}. Введите урон для применения к оружию с учетом Твердости:"
+            "weapon-prompt-body": "Критический провал с {weaponName}. Введите урон для применения к оружию с учетом Твердости:",
+            "armor-physical-prompt": "{actorName} потерял {damage} ХП. Был ли входящий урон физическим (дробящий, колющий или рубящий), и нужно ли повредить прочность брони?",
+            "shield-block-prompt-title": "Автоматизация Блока щитом",
+            "shield-block-prompt-button": "БЛОК ЩИТОМ АВТО",
+            "shield-block-prompt-body": "{actorName} использует Блок щитом с {shieldName}. Введите входящий урон до Твердости:"
          }
       },
       "status": {
@@ -302,6 +306,9 @@
             "armor": {
                "damage": "<strong>{itemName}</strong> получает {damage} урона прочности от урона по ХП ({rawDamage} ниже порога {threshold}% против Твердости {hardness}). Оставшиеся ХП: {currentHp} / {maxHp}.",
                "no-damage": "<strong>{itemName}</strong> не получает урона прочности от урона по ХП ({rawDamage} ниже порога {threshold}% против Твердости {hardness})."
+            },
+            "shield-block": {
+               "content": "<strong>Блок щитом:</strong> {actorName} блокирует <strong>{itemName}</strong>. Входящий урон {incomingDamage}, Твердость {hardness}, щит получает {shieldDamage}, персонаж получает {actorDamage}. ХП щита: {shieldCurrentHp} / {shieldMaxHp}."
             }
          }
       },
@@ -334,7 +341,8 @@
          "no-actor-repair": "Не найден персонаж для починки предмета.",
          "no-crafting-skill": "У этого персонажа нет навыка Ремесло.",
          "applied-damage": "Нанесено {damage} урона по {itemName}.",
-         "trait-assigned": "Этот признак уже назначен."
+         "trait-assigned": "Этот признак уже назначен.",
+         "no-raised-shield": "У {actorName} нет поднятого щита для автоматизации Блока щитом."
       },
       "settings": {
          "injectSunderButton": {
@@ -428,6 +436,18 @@
          "showDurabilityAutoMessages": {
             "name": "Хоумбрю: показывать сообщения автоматизации",
             "hint": "Публиковать сообщения в чат при срабатывании этих хоумбрю автоматизаций прочности."
+         },
+         "promptArmorDamagePhysicalConfirm": {
+            "name": "Хоумбрю: спрашивать, был ли урон физическим",
+            "hint": "Если включено, каждое снижение ХП спрашивает, был ли урон физическим, перед применением урона прочности брони. Если выключено, урон броне применяется автоматически только при обнаружении физических типов урона."
+         },
+         "shieldBlockAutoPC": {
+            "name": "Хоумбрю: автоматизация Блока щитом (PC)",
+            "hint": "Добавляет модальное окно при использовании Блока щитом: введите входящий урон, затем примените урон после Твердости к поднятому щиту и персонажу."
+         },
+         "shieldBlockAutoNPC": {
+            "name": "Хоумбрю: автоматизация Блока щитом (NPC)",
+            "hint": "То же, что и для PC, но для NPC."
          },
          "suppressArmourPotency": {
             "name": "Подавлять руны могущества брони",
