@@ -183,6 +183,96 @@ export const registerSettings = () => {
       onChange: forceStateSync,
    })
 
+   game.settings.register(
+      "pf2e-aztecs-sundered",
+      "enableCritFailWeaponDamagePC",
+      {
+         name: "pf2e-aztecs-sundered.settings.enableCritFailWeaponDamagePC.name",
+         hint: "pf2e-aztecs-sundered.settings.enableCritFailWeaponDamagePC.hint",
+         scope: "world",
+         config: true,
+         type: Boolean,
+         default: false,
+      },
+   )
+
+   game.settings.register(
+      "pf2e-aztecs-sundered",
+      "enableCritFailWeaponDamageNPC",
+      {
+         name: "pf2e-aztecs-sundered.settings.enableCritFailWeaponDamageNPC.name",
+         hint: "pf2e-aztecs-sundered.settings.enableCritFailWeaponDamageNPC.hint",
+         scope: "world",
+         config: true,
+         type: Boolean,
+         default: false,
+      },
+   )
+
+   game.settings.register("pf2e-aztecs-sundered", "enableArmorDamageFromHpPC", {
+      name: "pf2e-aztecs-sundered.settings.enableArmorDamageFromHpPC.name",
+      hint: "pf2e-aztecs-sundered.settings.enableArmorDamageFromHpPC.hint",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: false,
+   })
+
+   game.settings.register(
+      "pf2e-aztecs-sundered",
+      "enableArmorDamageFromHpNPC",
+      {
+         name: "pf2e-aztecs-sundered.settings.enableArmorDamageFromHpNPC.name",
+         hint: "pf2e-aztecs-sundered.settings.enableArmorDamageFromHpNPC.hint",
+         scope: "world",
+         config: true,
+         type: Boolean,
+         default: false,
+      },
+   )
+
+   game.settings.register(
+      "pf2e-aztecs-sundered",
+      "armorDamageUseStaminaForPC",
+      {
+         name: "pf2e-aztecs-sundered.settings.armorDamageUseStaminaForPC.name",
+         hint: "pf2e-aztecs-sundered.settings.armorDamageUseStaminaForPC.hint",
+         scope: "world",
+         config: true,
+         type: Boolean,
+         default: true,
+      },
+   )
+
+   game.settings.register("pf2e-aztecs-sundered", "armorDamageThresholdPC", {
+      name: "pf2e-aztecs-sundered.settings.armorDamageThresholdPC.name",
+      hint: "pf2e-aztecs-sundered.settings.armorDamageThresholdPC.hint",
+      scope: "world",
+      config: true,
+      type: Number,
+      range: { min: 1, max: 100, step: 1 },
+      default: 75,
+   })
+
+   game.settings.register("pf2e-aztecs-sundered", "armorDamageThresholdNPC", {
+      name: "pf2e-aztecs-sundered.settings.armorDamageThresholdNPC.name",
+      hint: "pf2e-aztecs-sundered.settings.armorDamageThresholdNPC.hint",
+      scope: "world",
+      config: true,
+      type: Number,
+      range: { min: 1, max: 100, step: 1 },
+      default: 75,
+   })
+
+   game.settings.register("pf2e-aztecs-sundered", "showDurabilityAutoMessages", {
+      name: "pf2e-aztecs-sundered.settings.showDurabilityAutoMessages.name",
+      hint: "pf2e-aztecs-sundered.settings.showDurabilityAutoMessages.hint",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: true,
+   })
+
    game.settings.register("pf2e-aztecs-sundered", "suppressArmourPotency", {
       name: "pf2e-aztecs-sundered.settings.suppressArmourPotency.name",
       hint: "pf2e-aztecs-sundered.settings.suppressArmourPotency.hint",

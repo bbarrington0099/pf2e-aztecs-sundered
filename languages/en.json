@@ -246,6 +246,11 @@
             "restores-info": "(Default success restores {baseHeal} HP. Crit restores {critHeal} HP)",
             "roll": "Roll",
             "roll-crafting": "Roll Crafting"
+         },
+         "automation": {
+            "weapon-prompt-title": "Critical failure weapon damage",
+            "weapon-prompt-button": "CRIT FAIL DAMAGE",
+            "weapon-prompt-body": "Critical failure with {weaponName}. Enter rolled damage to apply against this weapon's hardness:"
          }
       },
       "sheet-text": {
@@ -306,6 +311,16 @@
             "damaged": "Item damaged for <strong>{amount}</strong> HP.",
             "no-hp-restored": "No HP restored.",
             "current-hp": "Current HP"
+         },
+         "automation": {
+            "weapon": {
+               "damage": "<strong>{itemName}</strong> takes {damage} durability damage from critical-failure backlash ({rawDamage} rolled vs Hardness {hardness}). Remaining HP: {currentHp} / {maxHp}.",
+               "no-damage": "<strong>{itemName}</strong> takes no durability damage from critical-failure backlash ({rawDamage} rolled vs Hardness {hardness})."
+            },
+            "armor": {
+               "damage": "<strong>{itemName}</strong> takes {damage} durability damage from HP spillover ({rawDamage} HP below {threshold}% threshold vs Hardness {hardness}). Remaining HP: {currentHp} / {maxHp}.",
+               "no-damage": "<strong>{itemName}</strong> takes no durability damage from HP spillover ({rawDamage} HP below {threshold}% threshold vs Hardness {hardness})."
+            }
          }
       },
       "notifications": {
@@ -381,6 +396,38 @@
          "weaponPenaltyAmount": {
             "name": "Weapon penalty amount",
             "hint": "The specific numeric penalty applied to broken weapons."
+         },
+         "enableCritFailWeaponDamagePC": {
+            "name": "Homebrew: Crit-fail weapon damage (PCs)",
+            "hint": "On critical-failure attack rolls, prompt for damage and apply it to the used weapon after Hardness. Recommendation if enabled: broken weapon penalty -1."
+         },
+         "enableCritFailWeaponDamageNPC": {
+            "name": "Homebrew: Crit-fail weapon damage (NPCs)",
+            "hint": "Same as PCs, but for NPC attacks."
+         },
+         "enableArmorDamageFromHpPC": {
+            "name": "Homebrew: Armor damage from HP hits (PCs)",
+            "hint": "Damage that reaches HP can also damage equipped armor (not shields), after armor Hardness. Recommendation if enabled: light/medium/heavy broken armor penalties all -1."
+         },
+         "enableArmorDamageFromHpNPC": {
+            "name": "Homebrew: Armor damage from HP hits (NPCs)",
+            "hint": "NPC HP damage can also damage equipped armor (not shields), after armor Hardness. NPCs always use the NPC threshold setting."
+         },
+         "armorDamageUseStaminaForPC": {
+            "name": "Homebrew: PC armor damage assumes Stamina variant",
+            "hint": "If enabled, any HP damage can affect armor. If disabled, armor damage only starts for the portion of HP damage below the PC threshold."
+         },
+         "armorDamageThresholdPC": {
+            "name": "Homebrew: PC armor damage threshold (%)",
+            "hint": "When Stamina mode is off, only HP damage below this percentage of max HP can damage armor."
+         },
+         "armorDamageThresholdNPC": {
+            "name": "Homebrew: NPC armor damage threshold (%)",
+            "hint": "Only HP damage below this percentage of max HP can damage NPC armor."
+         },
+         "showDurabilityAutoMessages": {
+            "name": "Homebrew: Show automation chat messages",
+            "hint": "Post chat summaries whenever these homebrew automations apply durability damage."
          },
          "suppressArmourPotency": {
             "name": "Suppress armour potency",
