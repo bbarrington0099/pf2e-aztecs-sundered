@@ -1,7 +1,7 @@
 import { getDefaultDurability } from "../logic.mjs"
 
 const MODULE_ID = "pf2e-aztecs-sundered"
-const PHYSICAL_DAMAGE_TYPES = ["bludgeoning", "piercing", "slashing"]
+const { DialogV2 } = foundry.applications.api
 
 const getActorHpValues = (actor, expandedChanges = {}) => {
    const oldHp = Number(actor.system?.attributes?.hp?.value ?? 0)
@@ -22,13 +22,26 @@ const shouldRunForActor = (actor, pcSettingKey, npcSettingKey) => {
    return false
 }
 
-const getEquippedArmor = (actor) =>
-   actor.items.find(
+const getEquippedArmor = (actor) => {
+   const armorItems = actor.items.filter((item) => item.type === "armor")
+   if (armorItems.length === 0) return null
+
+   const strictSlotArmor = armorItems.find(
       (item) =>
-         item.type === "armor" &&
          item.system?.equipped?.inSlot === true &&
          item.system?.equipped?.carryType === "worn",
    )
+   if (strictSlotArmor) return strictSlotArmor
+
+   const wornArmor = armorItems.find(
+      (item) =>
+         item.system?.equipped?.carryType === "worn" ||
+         item.system?.equipped?.equipped === true,
+   )
+   if (wornArmor) return wornArmor
+
+   return armorItems[0] || null
+}
 
 const isShieldEquipped = (shield) => {
    const carryType = shield.system?.equipped?.carryType
@@ -91,6 +104,60 @@ const postAutomationMessage = async (content) => {
       speaker: ChatMessage.getSpeaker({ user: game.user }),
       content,
    })
+}
+
+const getWeaponBreakageFormula = (weapon) => {
+   const damageData = weapon.system?.damage || {}
+   const baseDice = Math.max(1, Number(damageData.dice ?? 1))
+   const die = String(damageData.die || "d4")
+   const modifier = Number(damageData.modifier ?? 0)
+   const striking = Math.max(0, Number(weapon.system?.runes?.striking ?? 0))
+   const totalDice = baseDice + striking
+
+   if (die.startsWith("d")) {
+      const modPart = modifier > 0 ? `+${modifier}` : modifier < 0 ? `${modifier}` : ""
+      return `${totalDice}${die}${modPart}`
+   }
+
+   const damageRolls = weapon.system?.damageRolls
+   if (damageRolls && typeof damageRolls === "object") {
+      const firstRoll = Object.values(damageRolls).find(
+         (entry) => typeof entry?.damage === "string" && entry.damage.trim(),
+      )
+      if (firstRoll?.damage) return String(firstRoll.damage)
+   }
+
+   return null
+}
+
+const rollWeaponBreakageDamage = async (weapon, actor) => {
+   const formula = getWeaponBreakageFormula(weapon)
+   if (!formula) {
+      ui.notifications.warn(
+         game.i18n.format(
+            "pf2e-aztecs-sundered.notifications.weapon-breakage-no-formula",
+            {
+               itemName: weapon.name,
+            },
+         ),
+      )
+      return null
+   }
+
+   const rollData = actor?.getRollData?.() ?? {}
+   const roll = await new Roll(formula, rollData).evaluate()
+   await roll.toMessage({
+      speaker: ChatMessage.getSpeaker({ actor: actor || null }),
+      flavor: game.i18n.format(
+         "pf2e-aztecs-sundered.chat.automation.weapon-breakage-roll",
+         {
+            itemName: weapon.name,
+            formula,
+         },
+      ),
+   })
+
+   return roll.total
 }
 
 const applyDamageToWeapon = async (weapon, rawDamage) => {
@@ -218,22 +285,68 @@ const getActorFromMessage = (message) => {
    return null
 }
 
+const getWeaponFromMessage = (message, actor) => {
+   if (message.item?.type === "weapon") return message.item
+
+   const context = message.flags?.pf2e?.context || {}
+   const options = (context.options || []).map((entry) => String(entry))
+   for (const option of options) {
+      const idMatch = option.match(/^item:id:(.+)$/i)
+      if (idMatch?.[1]) {
+         const item = actor?.items?.get(idMatch[1])
+         if (item?.type === "weapon") return item
+      }
+   }
+
+   const actorWeapon = actor?.items?.find(
+      (item) =>
+         item.type === "weapon" &&
+         item.system?.equipped?.carryType !== "stowed" &&
+         item.system?.equipped?.inSlot !== false,
+   )
+   if (actorWeapon) return actorWeapon
+
+   return null
+}
+
 const isCriticalFailAttackMessage = (message) => {
    const context = message.flags?.pf2e?.context || {}
    const options = context.options || []
    const normalizedOptions = options.map((entry) => String(entry).toLowerCase())
    const flavor = String(message.flavor || "").toLowerCase()
+   const contextType = String(context.type || "").toLowerCase()
+   const modifierName = String(context.modifierName || "").toLowerCase()
+   const contextSummary = JSON.stringify(context).toLowerCase()
+   const hasStrikeStatistic = normalizedOptions.some(
+      (entry) =>
+         entry.startsWith("check:statistic:") &&
+         (entry.includes("strike") || entry.includes("attack")),
+   )
 
    const isAttackRoll =
-      context.type === "attack-roll" ||
+      contextType === "attack-roll" ||
+      contextType.includes("attack") ||
+      contextType.includes("strike") ||
       normalizedOptions.includes("check:type:attack-roll") ||
       normalizedOptions.includes("action:strike") ||
+      hasStrikeStatistic ||
+      normalizedOptions.some((entry) => entry.includes("action:strike")) ||
+      normalizedOptions.some((entry) => entry.includes("attack")) ||
+      message.item?.type === "weapon" ||
+      modifierName.includes("strike") ||
+      modifierName.includes("attack") ||
+      contextSummary.includes("action:strike") ||
       flavor.includes("attack roll")
+
    const isCriticalFailure =
       context.outcome === "criticalFailure" ||
       context.outcome === "critical-failure" ||
       context.degreeOfSuccess === 0 ||
+      context.degreeOfSuccess === "criticalFailure" ||
+      context.degreeOfSuccess === "critical-failure" ||
       normalizedOptions.includes("degree:critical-failure") ||
+      contextSummary.includes("criticalfailure") ||
+      contextSummary.includes("critical-failure") ||
       flavor.includes("critical failure")
 
    return isAttackRoll && isCriticalFailure
@@ -255,78 +368,84 @@ const isShieldBlockMessage = (message) => {
    )
 }
 
-const promptForCritFailDamage = async (weaponName) => {
-   const response = window.prompt(
-      game.i18n.format(
-         "pf2e-aztecs-sundered.dialog.automation.weapon-prompt-body",
-         { weaponName },
-      ),
-      "0",
-   )
-   if (response === null) return null
-   const parsed = Number.parseInt(response, 10)
+const promptForNumber = async ({ title, body, defaultValue = 0 }) => {
+   const content = `
+      <form>
+         <div class="form-group">
+            <label>${body}</label>
+            <input type="number" name="aztec-value" value="${defaultValue}" min="0" step="1" />
+         </div>
+      </form>
+   `
+   const result = await DialogV2.wait({
+      window: { title },
+      content,
+      buttons: [
+         {
+            action: "confirm",
+            label: game.i18n.localize("PF2E.Actor.ApplyDamage"),
+            default: true,
+            callback: (event, button, dialog) => {
+               const input = dialog.element.querySelector('input[name="aztec-value"]')
+               return input?.value ?? null
+            },
+         },
+         {
+            action: "cancel",
+            label: game.i18n.localize("Cancel"),
+         },
+      ],
+      rejectClose: false,
+   })
+   if (result === null || result === undefined || result === "") return null
+   const parsed = Number.parseInt(String(result), 10)
    if (!Number.isFinite(parsed) || parsed <= 0) return null
    return parsed
+}
+
+const promptYesNo = async ({ title, body }) => {
+   const confirmed = await DialogV2.confirm({
+      window: { title },
+      content: `<p>${body}</p>`,
+      yes: {
+         label: game.i18n.localize("Yes"),
+      },
+      no: {
+         label: game.i18n.localize("No"),
+      },
+      rejectClose: false,
+   })
+   return confirmed === true
 }
 
 const promptForShieldBlockIncomingDamage = async (actorName, shieldName) => {
-   const response = window.prompt(
-      game.i18n.format(
+   return promptForNumber({
+      title: game.i18n.localize(
+         "pf2e-aztecs-sundered.dialog.automation.shield-block-prompt-title",
+      ),
+      body: game.i18n.format(
          "pf2e-aztecs-sundered.dialog.automation.shield-block-prompt-body",
          { actorName, shieldName },
       ),
-      "0",
-   )
-   if (response === null) return null
-   const parsed = Number.parseInt(response, 10)
-   if (!Number.isFinite(parsed) || parsed <= 0) return null
-   return parsed
+      defaultValue: 0,
+   })
 }
 
-const collectStringsDeep = (value, bucket = []) => {
-   if (typeof value === "string") {
-      bucket.push(value.toLowerCase())
-      return bucket
-   }
-   if (Array.isArray(value)) {
-      value.forEach((entry) => collectStringsDeep(entry, bucket))
-      return bucket
-   }
-   if (value && typeof value === "object") {
-      Object.values(value).forEach((entry) => collectStringsDeep(entry, bucket))
-   }
-   return bucket
-}
-
-const getDamageTypesFromContext = (changes, options) => {
-   const loweredStrings = collectStringsDeep([changes, options])
-   const found = new Set()
-   for (const raw of loweredStrings) {
-      const damageTypeMatch = raw.match(/damage:type:([a-z-]+)/)
-      if (damageTypeMatch?.[1]) found.add(damageTypeMatch[1])
-      for (const physicalType of PHYSICAL_DAMAGE_TYPES) {
-         if (raw.includes(physicalType)) found.add(physicalType)
-      }
-   }
-   return found
-}
-
-const shouldArmorAutomationApplyForThisHit = (actor, changes, options, hpDamageTaken) => {
-   const usePrompt = game.settings.get(MODULE_ID, "promptArmorDamagePhysicalConfirm")
-   if (usePrompt) {
-      return window.confirm(
-         game.i18n.format(
-            "pf2e-aztecs-sundered.dialog.automation.armor-physical-prompt",
-            { actorName: actor.name, damage: hpDamageTaken },
-         ),
-      )
-   }
-
-   const damageTypes = getDamageTypesFromContext(changes, options)
-   return [...damageTypes].some((damageType) =>
-      PHYSICAL_DAMAGE_TYPES.includes(damageType),
-   )
-}
+const shouldArmorAutomationApplyForThisHit = async (
+   actor,
+   changes,
+   options,
+   hpDamageTaken,
+) =>
+   promptYesNo({
+      title: game.i18n.localize(
+         "pf2e-aztecs-sundered.dialog.automation.armor-physical-prompt-title",
+      ),
+      body: game.i18n.format(
+         "pf2e-aztecs-sundered.dialog.automation.armor-physical-prompt",
+         { actorName: actor.name, damage: hpDamageTaken },
+      ),
+   })
 
 const resolveActor = (actorOrId) => {
    if (!actorOrId) return null
@@ -385,6 +504,7 @@ export const promptAndRunShieldBlockAutomation = async (actorOrId) => {
 
 export function registerAutomationHooks() {
    Hooks.on("renderChatMessageHTML", (message, htmlElement) => {
+      if (!game.user.isGM) return
       const domElement =
          htmlElement instanceof HTMLElement ? htmlElement : htmlElement[0]
       if (!domElement) return
@@ -401,27 +521,28 @@ export function registerAutomationHooks() {
             return
          }
 
-         const weapon = message.item?.type === "weapon" ? message.item : null
+         const weapon = getWeaponFromMessage(message, actor)
          if (!weapon) return
 
-         if (domElement.querySelector(".aztec-critfail-weapon-btn")) return
+         if (!domElement.querySelector(".aztec-critfail-weapon-btn")) {
+            const buttonHtml = `
+               <button type="button" class="aztec-critfail-weapon-btn" title="${game.i18n.localize("pf2e-aztecs-sundered.dialog.automation.weapon-prompt-title")}">
+                  <i class="fa-solid fa-triangle-exclamation fa-fw" inert=""></i>
+                  <span class="label">${game.i18n.localize("pf2e-aztecs-sundered.dialog.automation.weapon-prompt-button")}</span>
+               </button>
+            `
 
-         const buttonHtml = `
-            <button type="button" class="aztec-critfail-weapon-btn" title="${game.i18n.localize("pf2e-aztecs-sundered.dialog.automation.weapon-prompt-title")}">
-               <i class="fa-solid fa-triangle-exclamation fa-fw" inert=""></i>
-               <span class="label">${game.i18n.localize("pf2e-aztecs-sundered.dialog.automation.weapon-prompt-button")}</span>
-            </button>
-         `
-
-         const damageAppContainer = domElement.querySelector(".damage-application")
-         if (damageAppContainer) {
-            damageAppContainer.insertAdjacentHTML("beforeend", buttonHtml)
-         } else {
-            const messageContent = domElement.querySelector(".message-content")
-            if (messageContent) {
-               messageContent.insertAdjacentHTML("beforeend", buttonHtml)
+            const damageAppContainer = domElement.querySelector(".damage-application")
+            if (damageAppContainer) {
+               damageAppContainer.insertAdjacentHTML("beforeend", buttonHtml)
+            } else {
+               const messageContent = domElement.querySelector(".message-content")
+               if (messageContent) {
+                  messageContent.insertAdjacentHTML("beforeend", buttonHtml)
+               }
             }
          }
+
       }
 
       if (isShieldBlockMessage(message)) {
@@ -459,9 +580,10 @@ export function registerAutomationHooks() {
             if (button) {
                event.preventDefault()
                event.stopPropagation()
-               const weapon = message.item?.type === "weapon" ? message.item : null
+               const actor = getActorFromMessage(message)
+               const weapon = getWeaponFromMessage(message, actor)
                if (!weapon) return
-               const rawDamage = await promptForCritFailDamage(weapon.name)
+               const rawDamage = await rollWeaponBreakageDamage(weapon, actor)
                if (!rawDamage) return
                await applyDamageToWeapon(weapon, rawDamage)
                return
@@ -481,7 +603,7 @@ export function registerAutomationHooks() {
    })
 
    Hooks.on("updateActor", async (actor, changes, options, userId) => {
-      if (game.user.id !== userId) return
+      if (!game.user.isGM) return
       if (
          !shouldRunForActor(
             actor,
@@ -504,7 +626,14 @@ export function registerAutomationHooks() {
 
       const armor = getEquippedArmor(actor)
       if (!armor) return
-      if (!shouldArmorAutomationApplyForThisHit(actor, changes, options, hpDamageTaken))
+      if (
+         !(await shouldArmorAutomationApplyForThisHit(
+            actor,
+            changes,
+            options,
+            hpDamageTaken,
+         ))
+      )
          return
 
       const isNpc = actor.type === "npc"
@@ -527,7 +656,7 @@ export function registerAutomationHooks() {
    })
 
    Hooks.on("preUpdateActor", (actor, changes, options, userId) => {
-      if (game.user.id !== userId) return
+      if (!game.user.isGM) return
       const expandedChanges = foundry.utils.expandObject(changes)
       if (expandedChanges.system?.attributes?.hp?.value === undefined) return
       options.aztecOldActorHp = Number(actor.system?.attributes?.hp?.value ?? 0)

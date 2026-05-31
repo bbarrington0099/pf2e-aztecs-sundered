@@ -248,9 +248,10 @@
             "roll-crafting": "Бросок Ремесла"
          },
          "automation": {
-            "weapon-prompt-title": "Урон оружию при критическом провале",
-            "weapon-prompt-button": "КРИТ ПРОВАЛ УРОН",
-            "weapon-prompt-body": "Критический провал с {weaponName}. Введите урон для применения к оружию с учетом Твердости:",
+            "weapon-prompt-title": "Поломка оружия",
+            "weapon-prompt-button": "ПОЛОМКА ОРУЖИЯ",
+            "weapon-prompt-body": "Критический провал с {weaponName}. Нажмите, чтобы автоматически бросить урон поломки оружия.",
+            "armor-physical-prompt-title": "Подтверждение прочности брони",
             "armor-physical-prompt": "{actorName} потерял {damage} ХП. Был ли входящий урон физическим (дробящий, колющий или рубящий), и нужно ли повредить прочность брони?",
             "shield-block-prompt-title": "Автоматизация Блока щитом",
             "shield-block-prompt-button": "БЛОК ЩИТОМ АВТО",
@@ -303,6 +304,7 @@
                "damage": "<strong>{itemName}</strong> получает {damage} урона прочности от отката критического провала ({rawDamage} против Твердости {hardness}). Оставшиеся ХП: {currentHp} / {maxHp}.",
                "no-damage": "<strong>{itemName}</strong> не получает урона прочности от отката критического провала ({rawDamage} против Твердости {hardness})."
             },
+            "weapon-breakage-roll": "<strong>Поломка оружия:</strong> {itemName} бросает {formula} для урона себе.",
             "armor": {
                "damage": "<strong>{itemName}</strong> получает {damage} урона прочности от урона по ХП ({rawDamage} ниже порога {threshold}% против Твердости {hardness}). Оставшиеся ХП: {currentHp} / {maxHp}.",
                "no-damage": "<strong>{itemName}</strong> не получает урона прочности от урона по ХП ({rawDamage} ниже порога {threshold}% против Твердости {hardness})."
@@ -342,7 +344,8 @@
          "no-crafting-skill": "У этого персонажа нет навыка Ремесло.",
          "applied-damage": "Нанесено {damage} урона по {itemName}.",
          "trait-assigned": "Этот признак уже назначен.",
-         "no-raised-shield": "У {actorName} нет поднятого щита для автоматизации Блока щитом."
+         "no-raised-shield": "У {actorName} нет поднятого щита для автоматизации Блока щитом.",
+         "weapon-breakage-no-formula": "Не удалось определить формулу урона для {itemName}."
       },
       "settings": {
          "injectSunderButton": {
@@ -436,10 +439,6 @@
          "showDurabilityAutoMessages": {
             "name": "Хоумбрю: показывать сообщения автоматизации",
             "hint": "Публиковать сообщения в чат при срабатывании этих хоумбрю автоматизаций прочности."
-         },
-         "promptArmorDamagePhysicalConfirm": {
-            "name": "Хоумбрю: спрашивать, был ли урон физическим",
-            "hint": "Если включено, каждое снижение ХП спрашивает, был ли урон физическим, перед применением урона прочности брони. Если выключено, урон броне применяется автоматически только при обнаружении физических типов урона."
          },
          "shieldBlockAutoPC": {
             "name": "Хоумбрю: автоматизация Блока щитом (PC)",

@@ -14,7 +14,6 @@ All of these are disabled by default unless noted otherwise.
 - `Homebrew: PC armor damage assumes Stamina variant` (default: enabled)
 - `Homebrew: PC armor damage threshold (%)` (default: 75)
 - `Homebrew: NPC armor damage threshold (%)` (default: 75)
-- `Homebrew: Prompt if HP loss was physical` (default: enabled)
 - `Homebrew: Shield Block automation (PCs)`
 - `Homebrew: Shield Block automation (NPCs)`
 - `Homebrew: Show automation chat messages` (default: enabled)
@@ -23,7 +22,7 @@ All of these are disabled by default unless noted otherwise.
 
 When enabled, critical-failure attack rolls with a weapon get a chat action button:
 
-- Prompt for rolled damage (for tables that do not normally roll damage on crit fail)
+- Click `Weapon Breakage` to roll self-damage automatically from the weapon's normal damage formula
 - Apply durability damage to the same weapon as:
   - `max(0, rolledDamage - weaponHardness)`
 - If there is no weapon item associated with the attack, this automation is skipped
@@ -37,8 +36,8 @@ When enabled, armor-slot armor (not shields) can take durability damage when act
   - Armor automation is enabled for that actor type (PC/NPC)
   - Actor has armor equipped in the armor slot
 - Physical-damage gate:
-  - If `Prompt if HP loss was physical` is enabled, each HP drop asks for Yes/No confirmation
-  - If disabled, automation runs only when physical damage types are detected (`bludgeoning`, `piercing`, `slashing`)
+  - Each HP drop asks for Yes/No confirmation whether that damage should apply to armor durability
+  - Prompt uses Foundry modal dialogs
 - Damage calculation:
   - Stamina mode (PC only, when enabled): all HP damage can spill to armor
   - Threshold mode: only the HP-damage portion below the configured threshold% can spill to armor

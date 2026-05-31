@@ -248,9 +248,10 @@
             "roll-crafting": "Roll Crafting"
          },
          "automation": {
-            "weapon-prompt-title": "Critical failure weapon damage",
-            "weapon-prompt-button": "CRIT FAIL DAMAGE",
-            "weapon-prompt-body": "Critical failure with {weaponName}. Enter rolled damage to apply against this weapon's hardness:",
+            "weapon-prompt-title": "Weapon Breakage",
+            "weapon-prompt-button": "WEAPON BREAKAGE",
+            "weapon-prompt-body": "Critical failure with {weaponName}. Click to roll weapon breakage damage automatically.",
+            "armor-physical-prompt-title": "Armor durability confirmation",
             "armor-physical-prompt": "{actorName} lost {damage} HP. Was the incoming damage physical (bludgeoning, piercing, or slashing) and should it damage armor durability?",
             "shield-block-prompt-title": "Shield Block automation",
             "shield-block-prompt-button": "SHIELD BLOCK AUTO",
@@ -321,6 +322,7 @@
                "damage": "<strong>{itemName}</strong> takes {damage} durability damage from critical-failure backlash ({rawDamage} rolled vs Hardness {hardness}). Remaining HP: {currentHp} / {maxHp}.",
                "no-damage": "<strong>{itemName}</strong> takes no durability damage from critical-failure backlash ({rawDamage} rolled vs Hardness {hardness})."
             },
+            "weapon-breakage-roll": "<strong>Weapon Breakage:</strong> {itemName} rolls {formula} for self-damage.",
             "armor": {
                "damage": "<strong>{itemName}</strong> takes {damage} durability damage from HP spillover ({rawDamage} HP below {threshold}% threshold vs Hardness {hardness}). Remaining HP: {currentHp} / {maxHp}.",
                "no-damage": "<strong>{itemName}</strong> takes no durability damage from HP spillover ({rawDamage} HP below {threshold}% threshold vs Hardness {hardness})."
@@ -342,7 +344,8 @@
          "no-crafting-skill": "This actor does not have a Crafting skill.",
          "applied-damage": "Applied {damage} damage to {itemName}.",
          "trait-assigned": "This trait is already assigned.",
-         "no-raised-shield": "{actorName} has no raised shield available for Shield Block automation."
+         "no-raised-shield": "{actorName} has no raised shield available for Shield Block automation.",
+         "weapon-breakage-no-formula": "Could not determine a damage formula for {itemName}."
       },
       "settings": {
          "showInventoryUI": {
@@ -436,10 +439,6 @@
          "showDurabilityAutoMessages": {
             "name": "Homebrew: Show automation chat messages",
             "hint": "Post chat summaries whenever these homebrew automations apply durability damage."
-         },
-         "promptArmorDamagePhysicalConfirm": {
-            "name": "Homebrew: Prompt if HP loss was physical",
-            "hint": "When enabled, every HP decrease asks if the hit was physical before applying armor durability damage. When disabled, armor damage applies automatically only when physical damage types are detected."
          },
          "shieldBlockAutoPC": {
             "name": "Homebrew: Shield Block automation (PCs)",

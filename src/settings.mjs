@@ -273,19 +273,6 @@ export const registerSettings = () => {
       default: true,
    })
 
-   game.settings.register(
-      "pf2e-aztecs-sundered",
-      "promptArmorDamagePhysicalConfirm",
-      {
-         name: "pf2e-aztecs-sundered.settings.promptArmorDamagePhysicalConfirm.name",
-         hint: "pf2e-aztecs-sundered.settings.promptArmorDamagePhysicalConfirm.hint",
-         scope: "world",
-         config: true,
-         type: Boolean,
-         default: true,
-      },
-   )
-
    game.settings.register("pf2e-aztecs-sundered", "shieldBlockAutoPC", {
       name: "pf2e-aztecs-sundered.settings.shieldBlockAutoPC.name",
       hint: "pf2e-aztecs-sundered.settings.shieldBlockAutoPC.hint",
