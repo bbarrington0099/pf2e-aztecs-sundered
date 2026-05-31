@@ -383,7 +383,9 @@ const promptForNumber = async ({ title, body, defaultValue = 0 }) => {
       buttons: [
          {
             action: "confirm",
-            label: game.i18n.localize("PF2E.Actor.ApplyDamage"),
+            label: game.i18n.localize(
+               "pf2e-aztecs-sundered.dialog.sunder.apply-damage",
+            ),
             default: true,
             callback: (event, button, dialog) => {
                const input = dialog.element.querySelector('input[name="aztec-value"]')

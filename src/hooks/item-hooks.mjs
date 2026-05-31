@@ -8,6 +8,77 @@ import {
 } from "../logic.mjs"
 import { NpcPenaltyApp } from "../apps/npc-app.mjs"
 
+const isRaiseShieldEffect = (effectItem) => {
+   if (effectItem?.type !== "effect") return false
+   const blob = JSON.stringify({
+      name: effectItem.name,
+      slug: effectItem.slug,
+      sourceId: effectItem.sourceId,
+      systemSlug: effectItem.system?.slug,
+      rollOptions: effectItem.flags?.pf2e?.rollOptions,
+   }).toLowerCase()
+
+   return blob.includes("raise-a-shield") || blob.includes("raise a shield")
+}
+
+const getItemDurabilitySnapshot = (item, changes, options) => {
+   const isShield = item.type === "shield"
+   const defaultStats = getDefaultDurability(item)
+
+   const oldMax = Number(
+      options.aztecOldMax ??
+         (isShield
+            ? (item.system.hp?.max ?? 1)
+            : (item.getFlag("world", "maxHp") ?? defaultStats.maxHp ?? 1)),
+   )
+   const oldHp = Number(
+      options.aztecOldHp ??
+         (isShield
+            ? (item.system.hp?.value ?? 0)
+            : (item.getFlag("world", "currentHp") ?? defaultStats.maxHp ?? 0)),
+   )
+
+   const newMax = Number(
+      isShield
+         ? (changes.system?.hp?.max ?? item.system.hp?.max ?? oldMax)
+         : (changes.flags?.world?.maxHp ?? item.getFlag("world", "maxHp") ?? oldMax),
+   )
+   const newHp = Number(
+      isShield
+         ? (changes.system?.hp?.value ?? item.system.hp?.value ?? oldHp)
+         : (changes.flags?.world?.currentHp ??
+           item.getFlag("world", "currentHp") ??
+           oldHp),
+   )
+
+   const oldThreshold = isShield
+      ? Number(item.system.hp?.brokenThreshold ?? Math.floor(oldMax / 2))
+      : Math.floor(oldMax / 2)
+   const newThreshold = isShield
+      ? Number(
+           changes.system?.hp?.brokenThreshold ??
+              item.system.hp?.brokenThreshold ??
+              Math.floor(newMax / 2),
+        )
+      : Math.floor(newMax / 2)
+
+   return { oldMax, oldHp, newMax, newHp, oldThreshold, newThreshold }
+}
+
+const removeLinkedBrokenEffects = async (item) => {
+   if (!item.actor) return
+   const linkedEffects = item.actor.items.filter(
+      (effectItem) =>
+         effectItem.type === "effect" &&
+         effectItem.flags?.["pf2e-aztecs-sundered"]?.brokenItemId === item.id,
+   )
+   if (linkedEffects.length === 0) return
+   await item.actor.deleteEmbeddedDocuments(
+      "Item",
+      linkedEffects.map((effectItem) => effectItem.id),
+   )
+}
+
 export function registerItemHooks() {
    Hooks.on("preUpdateItem", (item, changes, options, userId) => {
       if (game.user.id !== userId) return
@@ -355,6 +426,47 @@ export function registerItemHooks() {
                   "system.equipped.carryType": "dropped",
                })),
             )
+      }
+
+      if (
+         item.actor &&
+         (item.type === "armor" || item.type === "weapon" || item.type === "shield")
+      ) {
+         const { oldMax, oldHp, newMax, newHp, oldThreshold, newThreshold } =
+            getItemDurabilitySnapshot(item, changes, options)
+
+         const wasBroken = oldMax > 0 && oldHp <= oldThreshold
+         const isBroken = newMax > 0 && newHp <= newThreshold
+         if (wasBroken && !isBroken) {
+            await removeLinkedBrokenEffects(item)
+         }
+      }
+
+      if (item.type === "shield" && item.actor) {
+         const oldMaxHp = Number(options.aztecOldMax ?? item.system.hp?.max ?? 0)
+         const oldHp = Number(options.aztecOldHp ?? item.system.hp?.value ?? 0)
+         const oldBrokenThreshold =
+            item.system.hp?.brokenThreshold ?? Math.floor(oldMaxHp / 2)
+
+         const newMaxHp = Number(changes.system?.hp?.max ?? item.system.hp?.max ?? oldMaxHp)
+         const newHp = Number(changes.system?.hp?.value ?? item.system.hp?.value ?? oldHp)
+         const newBrokenThreshold =
+            changes.system?.hp?.brokenThreshold ??
+            item.system.hp?.brokenThreshold ??
+            Math.floor(newMaxHp / 2)
+
+         const wasBroken = oldMaxHp > 0 && oldHp <= oldBrokenThreshold
+         const isBroken = newMaxHp > 0 && newHp <= newBrokenThreshold
+
+         if (!wasBroken && isBroken) {
+            const raiseShieldEffects = item.actor.items.filter(isRaiseShieldEffect)
+            if (raiseShieldEffects.length > 0) {
+               await item.actor.deleteEmbeddedDocuments(
+                  "Item",
+                  raiseShieldEffects.map((effectItem) => effectItem.id),
+               )
+            }
+         }
       }
 
       if (item.type !== "armor" && item.type !== "weapon") return

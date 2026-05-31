@@ -242,6 +242,8 @@
             "title": "Repair {itemName}",
             "repairing": "Repairing",
             "crafting-proficiency": "Crafting proficiency",
+            "crafter": "Crafter",
+            "item-owner": "Item owner",
             "repair-dc": "Repair DC",
             "restores-info": "(Default success restores {baseHeal} HP. Crit restores {critHeal} HP)",
             "roll": "Roll",
@@ -253,7 +255,7 @@
             "weapon-prompt-body": "Critical failure with {weaponName}. Click to roll weapon breakage damage automatically.",
             "armor-physical-prompt-title": "Armor durability confirmation",
             "armor-physical-prompt": "{actorName} lost {damage} HP. Was the incoming damage physical (bludgeoning, piercing, or slashing) and should it damage armor durability?",
-            "shield-block-prompt-title": "Shield Block automation",
+            "shield-block-prompt-title": "Shield Block Automation",
             "shield-block-prompt-button": "SHIELD BLOCK AUTO",
             "shield-block-prompt-body": "{actorName} uses Shield Block with {shieldName}. Enter incoming damage before hardness:"
          }
@@ -278,7 +280,8 @@
       },
       "status": {
          "broken": "Broken",
-         "destroyed": "Destroyed"
+         "destroyed": "Destroyed",
+         "damaged": "Damaged"
       },
       "ranks": {
          "untrained": "Untrained",
@@ -312,6 +315,7 @@
          },
          "repair": {
             "header": "Repair: {itemName}",
+            "context": "Crafter: {crafterName} | Item owner: {itemOwnerName}",
             "healed": "Item healed for <strong>{amount}</strong> HP.",
             "damaged": "Item damaged for <strong>{amount}</strong> HP.",
             "no-hp-restored": "No HP restored.",
@@ -344,7 +348,7 @@
          "no-crafting-skill": "This actor does not have a Crafting skill.",
          "applied-damage": "Applied {damage} damage to {itemName}.",
          "trait-assigned": "This trait is already assigned.",
-         "no-raised-shield": "{actorName} has no raised shield available for Shield Block automation.",
+         "no-raised-shield": "{actorName} has no raised shield available for Shield Block Automation.",
          "weapon-breakage-no-formula": "Could not determine a damage formula for {itemName}."
       },
       "settings": {
@@ -441,11 +445,11 @@
             "hint": "Post chat summaries whenever these homebrew automations apply durability damage."
          },
          "shieldBlockAutoPC": {
-            "name": "Homebrew: Shield Block automation (PCs)",
+            "name": "Homebrew: Shield Block Automation (PCs)",
             "hint": "Adds a modal workflow when Shield Block is used: input incoming damage, then apply hardness-adjusted damage to both raised shield and actor."
          },
          "shieldBlockAutoNPC": {
-            "name": "Homebrew: Shield Block automation (NPCs)",
+            "name": "Homebrew: Shield Block Automation (NPCs)",
             "hint": "Same as the PC setting, but for NPC actors."
          },
          "suppressArmourPotency": {

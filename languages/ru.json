@@ -242,6 +242,8 @@
             "title": "Починка: {itemName}",
             "repairing": "Починка",
             "crafting-proficiency": "Владение ремеслом",
+            "crafter": "Ремесленник",
+            "item-owner": "Владелец предмета",
             "repair-dc": "КС починки",
             "restores-info": "(При успехе восстанавливает {baseHeal} ХП. При крит. успехе {critHeal} ХП)",
             "roll": "Бросок",
@@ -260,7 +262,8 @@
       },
       "status": {
          "broken": "Сломан",
-         "destroyed": "Уничтожен"
+         "destroyed": "Уничтожен",
+         "damaged": "Поврежден"
       },
       "ranks": {
          "untrained": "Нетренированный",
@@ -294,6 +297,7 @@
          },
          "repair": {
             "header": "Починка: {itemName}",
+            "context": "Ремесленник: {crafterName} | Владелец предмета: {itemOwnerName}",
             "healed": "Предмет восстановлен на <strong>{amount}</strong> ХП.",
             "damaged": "Предмет поврежден на <strong>{amount}</strong> ХП.",
             "no-hp-restored": "ХП не восстановлены.",

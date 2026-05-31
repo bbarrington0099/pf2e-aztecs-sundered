@@ -4,6 +4,10 @@
         <img src="{{item.img}}" style="width: 36px; height: 36px; border: 1px solid #444; border-radius: 4px; object-fit: cover; flex-shrink: 0;">
         <strong>{{item.name}} ({{localize "pf2e-aztecs-sundered.sheet-text.hp-short"}}: {{currentHp}} / {{maximumHp}})</strong>
     </div>
+
+    <div style="text-align: center; font-size: 0.9em; color: var(--color-text-dark-secondary);">
+        {{localize "pf2e-aztecs-sundered.dialog.repair.crafter"}}: <strong>{{crafterName}}</strong> | {{localize "pf2e-aztecs-sundered.dialog.repair.item-owner"}}: <strong>{{itemOwnerName}}</strong>
+    </div>
     
     <hr style="margin: 0;">
 

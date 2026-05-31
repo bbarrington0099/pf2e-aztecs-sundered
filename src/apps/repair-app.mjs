@@ -4,7 +4,8 @@ export class RepairApp extends HandlebarsApplicationMixin(ApplicationV2) {
    constructor(options = {}) {
       super(options)
       this.item = options.item
-      this.actor = this.item?.actor
+      this.actor = options.actor || this.item?.actor
+      this.itemOwner = this.item?.actor || null
    }
 
    static DEFAULT_OPTIONS = {
@@ -131,6 +132,8 @@ export class RepairApp extends HandlebarsApplicationMixin(ApplicationV2) {
          restoresInfo: restoresInfo,
          currentHp: currentHitPoints,
          maximumHp: maximumHitPoints,
+         crafterName: this.actor?.name || "Unknown",
+         itemOwnerName: this.itemOwner?.name || this.item?.actor?.name || "Unknown",
       }
    }
 
@@ -287,11 +290,22 @@ export class RepairApp extends HandlebarsApplicationMixin(ApplicationV2) {
                game.i18n.localize(
                   "pf2e-aztecs-sundered.chat.repair.current-hp",
                ) || "Current HP"
+            let repairContextText = game.i18n.format(
+               "pf2e-aztecs-sundered.chat.repair.context",
+               {
+                  crafterName: this.actor?.name || "Unknown",
+                  itemOwnerName:
+                     this.itemOwner?.name || this.item?.actor?.name || "Unknown",
+               },
+            )
+            if (repairContextText.includes("chat.repair.context")) {
+               repairContextText = `Crafter: ${this.actor?.name || "Unknown"} | Item owner: ${this.itemOwner?.name || this.item?.actor?.name || "Unknown"}`
+            }
 
             ChatMessage.create({
                user: game.user.id,
                speaker: ChatMessage.getSpeaker({ actor: this.actor || null }),
-               content: `<div class=\"pf2e chat-card\"><header class=\"card-header flexrow\"><img src=\"${this.item.img}\" title=\"${this.item.name}\" width=\"36\" height=\"36\"/><h3>${titleBase}</h3></header><div class=\"card-content\" style=\"margin-top: 5px;\"><div style=\"color: ${outcomeColor}; font-weight: bold; font-size: 1.1em; text-align: center; margin: 4px 0;\">${outcomeTextMap[outcomeType] || rolledFallback}</div><div>${amountText}</div><div style=\"text-align: center; margin-top: 5px;\">${currentHpLabel}: <strong>${newlyCalculatedHitPoints} / ${this.maximumHitPoints}</strong></div></div></div>`,
+               content: `<div class=\"pf2e chat-card\"><header class=\"card-header flexrow\"><img src=\"${this.item.img}\" title=\"${this.item.name}\" width=\"36\" height=\"36\"/><h3>${titleBase}</h3></header><div class=\"card-content\" style=\"margin-top: 5px;\"><div style=\"color: ${outcomeColor}; font-weight: bold; font-size: 1.1em; text-align: center; margin: 4px 0;\">${outcomeTextMap[outcomeType] || rolledFallback}</div><div style=\"text-align:center; margin-bottom: 4px; color: var(--color-text-dark-secondary);\">${repairContextText}</div><div>${amountText}</div><div style=\"text-align: center; margin-top: 5px;\">${currentHpLabel}: <strong>${newlyCalculatedHitPoints} / ${this.maximumHitPoints}</strong></div></div></div>`,
             })
          },
       })
